@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+char *readUntilEOL( FILE* line, char **buffer ); //returns buffer, if line was read correctly; else - NULL
 
 
 int main( void ) {
@@ -40,6 +43,12 @@ int main( void ) {
 	int isNotEOL1 = 1;
 	int isCorrectGroup = 1;
 
+
+	char *line_with_correct_group;
+	const unsigned int BUFFER_LINE_SIZE = 1024;
+	bufferline_saver = calloc( BUFFER_LINE_SIZE, sizeof( char ) );
+	unsigned  int cycle_count;
+
 	unsigned int doubleDot_count = 0; // count of Double dot in single Line
 
 	fseek( cur_line, ftell( passwd ), SEEK_SET );
@@ -62,7 +71,8 @@ int main( void ) {
 				} while ( cur_element_passwd != ':' );
 				if ( isCorrectGroup == 1 ) {
 					do {
-						isNotEOF1 = fread( &cur_element_line, sizeof( cur_element_line), 1, cur_line );
+						
+
 						fwrite( &cur_element_line, sizeof( cur_element_line), 1, foutput );
 					} while ( ( cur_element_line != '\n') && ( isNotEOF1 == 1 ) );
 				}
@@ -90,4 +100,31 @@ int main( void ) {
 
 
 	return ( 0 );
+}
+
+
+char *readUntilEOL( FILE *line, char **buffer ) {
+	int cycle_counter = 1;
+	if ( line == NULL ) {
+		perror( "Empty file!" );
+		exit( 0 );
+	} else {
+		char *buffer_saver;
+		const unsigned int BUFFER_SIZE = 23;
+		buffer_saver = calloc( BUFFER_SIZE + 1, sizeof( *buffer_saver ) );
+		do {
+			fgets( buffer_saver + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
+			if ( buffer_saver == NULL ) {  // third  variant
+				free( *buffer );
+				perror( "You have reached end of file." );
+				return NULL;
+			}
+			*buffer = buffer_saver;
+			if ( (*buffer)[ strlen( *buffer ) - 1 ] == '\n' ) {
+				return *buffer;
+			}
+			cycle_counter++;
+			buffer_saver = realloc( buffer_saver, cycle_counter * BUFFER_SIZE * sizeof( *buffer_saver ) );
+		} while ( 1 );
+	}
 }
