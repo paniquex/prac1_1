@@ -6,3 +6,5 @@
 /depend.make
 /flags.make
 /progress.make
+/link.txt
+/main.c.o
