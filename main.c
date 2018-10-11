@@ -38,16 +38,13 @@ int main( void ) {
 //	} while ( foutputName[ foutputCount - 1 ] != EOF );
 
 	FILE *foutput = fopen( "./foutput" , "w" );
-	char cur_element_passwd, cur_element_line;
+	char cur_element_passwd;
 	int isNotEOF1 = 1;
 	int isNotEOL1 = 1;
 	int isCorrectGroup = 1;
 
 
 	char *line_with_correct_group;
-	const unsigned int BUFFER_LINE_SIZE = 1024;
-	bufferline_saver = calloc( BUFFER_LINE_SIZE, sizeof( char ) );
-	unsigned  int cycle_count;
 
 	unsigned int doubleDot_count = 0; // count of Double dot in single Line
 
@@ -70,11 +67,12 @@ int main( void ) {
 					}
 				} while ( cur_element_passwd != ':' );
 				if ( isCorrectGroup == 1 ) {
-					do {
-						
+						line_with_correct_group = readUntilEOL( cur_line, &line_with_correct_group );
+						if ( line_with_correct_group != NULL ) {
+							fputs(line_with_correct_group, foutput);
 
-						fwrite( &cur_element_line, sizeof( cur_element_line), 1, foutput );
-					} while ( ( cur_element_line != '\n') && ( isNotEOF1 == 1 ) );
+						}
+						free( line_with_correct_group );
 				}
 				isCorrectGroup = 1;
 				do {  // read all symbols after GID to end of line or end of file
@@ -110,7 +108,7 @@ char *readUntilEOL( FILE *line, char **buffer ) {
 		exit( 0 );
 	} else {
 		char *buffer_saver;
-		const unsigned int BUFFER_SIZE = 23;
+		const unsigned int BUFFER_SIZE = 2;
 		buffer_saver = calloc( BUFFER_SIZE + 1, sizeof( *buffer_saver ) );
 		do {
 			fgets( buffer_saver + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
@@ -120,11 +118,16 @@ char *readUntilEOL( FILE *line, char **buffer ) {
 				return NULL;
 			}
 			*buffer = buffer_saver;
-			if ( (*buffer)[ strlen( *buffer ) - 1 ] == '\n' ) {
-				return *buffer;
+			if ( ( strlen( *buffer ) == 1 ) && ( (*buffer)[0] == '\n' ) ) {
+				free( *buffer );
+				return NULL;
 			}
+			if ( (*buffer)[ strlen( *buffer ) - 1 ] == '\n' ) {
+					return *buffer;
+				}
 			cycle_counter++;
 			buffer_saver = realloc( buffer_saver, cycle_counter * BUFFER_SIZE * sizeof( *buffer_saver ) );
 		} while ( 1 );
+		
 	}
 }
