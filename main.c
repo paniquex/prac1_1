@@ -94,6 +94,7 @@ int main( void ) {
 
 	fclose( passwd );
 	fclose( foutput );
+	fclose( cur_line );
 
 
 
@@ -128,6 +129,6 @@ char *readUntilEOL( FILE *line, char **buffer ) {
 			cycle_counter++;
 			buffer_saver = realloc( buffer_saver, cycle_counter * BUFFER_SIZE * sizeof( *buffer_saver ) );
 		} while ( 1 );
-		
+
 	}
 }
