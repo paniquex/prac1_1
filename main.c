@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 char *readUntilEOL( FILE* line ); //returns buffer, if line was read correctly; else - NULL
 
+int isNumber( char *string ); // check if string == number, then 1; esle - 0;
 
-int main( void ) {
+
+
+int main( int argc, char *argv[] ) {
 	FILE *passwd = fopen( "./passwd", "r" );
 	FILE *cur_line = fopen( "./passwd", "r" );
 
@@ -13,31 +17,22 @@ int main( void ) {
 		perror( "File \"passwd\" does not exist" );
 	}
 
-//FUNCTION OF INPUT GROUP ID
-//	int *groupID = calloc( 3, sizeof( groupID ) );
-//	int groupIDCount = 0;
-//	do {
-//		groupID[groupIDCount] = getchar();
-//		groupIDCount++;
-//		if ( ( groupIDCount + 1 ) % 3 == 0 ) {
-//			groupID = realloc( groupID, ( groupIDCount + 4 ) * sizeof( groupID ) );
-//		}
-//	} while( groupID[ groupIDCount - 1 ] != EOF );
-//
-//
-//UNCTION 	OF INPUT NAME OF FILE;
-//	int *foutputName = calloc( 3, sizeof( foutputName ) );
-//	foutputName[0] = getchar(); // to read space
-//	int foutputCount = 0;
-//	do {
-//		foutputName[foutputCount] = getchar();
-//		foutputCount++;
-//		if ( ( foutputCount + 1 ) % 3 == 0 ) {
-//			foutputName = realloc( foutputName, ( foutputCount + 4 ) * sizeof( foutputName ) );
-//		}
-//	} while ( foutputName[ foutputCount - 1 ] != EOF );
+	if ( !( isNumber( argv[1] ) ) ) {
+		printf( "Second parametr must be a number. Please, try again." );
+	}
 
-	FILE *foutput = fopen( "./foutput" , "w" );
+
+	char *fileName;
+	fileName = calloc(  strlen( argv[2] ) + 3, sizeof( char ) );
+	if ( fileName == NULL ) {
+		perror( "Not enought memory to realloc: " );
+		exit( 0 );
+	}
+	strcat( fileName, "./" );
+	strcat( fileName, argv[2] );
+	FILE *foutput = fopen( fileName , "w" );
+	free( fileName );
+
 	char cur_element_passwd;
 	int isNotEOF1 = 1;
 	int isNotEOL1 = 1;
@@ -45,6 +40,7 @@ int main( void ) {
 
 
 	char *line_with_correct_group;
+	char *number_of_correct_group = argv[ 1 ];
 
 	unsigned int doubleDot_count = 0; // count of Double dot in single Line
 
@@ -60,11 +56,13 @@ int main( void ) {
 				doubleDot_count++;
 			}
 			if ( doubleDot_count == 3 ) { // if we meet third ':' then check GID and write to foutput
+				int i = 0;
 				do {
 					fread( &cur_element_passwd, sizeof( cur_element_passwd ), 1, passwd );
-					if ( ( cur_element_passwd != '2' ) && ( cur_element_passwd != ':' ) ) {
+					if ( ( cur_element_passwd != number_of_correct_group[ i ]  ) && ( cur_element_passwd != ':' ) ) {
 						isCorrectGroup = 0;
 					}
+					i++;
 				} while ( cur_element_passwd != ':' );
 				if ( isCorrectGroup == 1 ) {
 						line_with_correct_group = readUntilEOL( cur_line );
@@ -130,15 +128,24 @@ char *readUntilEOL( FILE *line ) {
 					return buffer;
 			}
 			cycle_counter++;
-			buffer_saver = buffer;
-			buffer_saver = realloc( buffer, cycle_counter * ( BUFFER_SIZE - 1 ) * sizeof( *buffer ) );
+			buffer_saver = realloc( buffer, 1 + cycle_counter * ( BUFFER_SIZE - 1 ) * sizeof( *buffer ) );
 			if ( buffer_saver == NULL ) {
 				perror( "Not enough memory for realloc: " );
 				free( buffer );
 				return NULL;
 			}
+			buffer = buffer_saver;
 
 		} while ( 1 );
 
 	}
+}
+
+int isNumber( char *string ) {
+	for( int i = 0; i < strlen( string ); i++ ) {
+		if ( !( isdigit( string[i] ) ) ) {
+			return 0;
+		}
+	}
+	return 1;
 }
