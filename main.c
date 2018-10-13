@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *readUntilEOL( FILE* line, char **buffer ); //returns buffer, if line was read correctly; else - NULL
+char *readUntilEOL( FILE* line ); //returns buffer, if line was read correctly; else - NULL
 
 
 int main( void ) {
@@ -67,12 +67,13 @@ int main( void ) {
 					}
 				} while ( cur_element_passwd != ':' );
 				if ( isCorrectGroup == 1 ) {
-						line_with_correct_group = readUntilEOL( cur_line, &line_with_correct_group );
+						line_with_correct_group = readUntilEOL( cur_line );
 						if ( line_with_correct_group != NULL ) {
 							fputs(line_with_correct_group, foutput);
-
+							free(line_with_correct_group);
+						} else {
+							printf( "\ncheck" );
 						}
-						free( line_with_correct_group );
 				}
 				isCorrectGroup = 1;
 				do {  // read all symbols after GID to end of line or end of file
@@ -102,32 +103,41 @@ int main( void ) {
 }
 
 
-char *readUntilEOL( FILE *line, char **buffer ) {
+char *readUntilEOL( FILE *line ) {
 	int cycle_counter = 1;
+	char *buffer;
+	char *buffer_saver; // if after realloc we lose memory
 	if ( line == NULL ) {
 		perror( "Empty file!" );
-		exit( 0 );
+		return NULL;
 	} else {
-		char *buffer_saver;
-		const unsigned int BUFFER_SIZE = 2;
-		buffer_saver = calloc( BUFFER_SIZE + 1, sizeof( *buffer_saver ) );
+		const unsigned int BUFFER_SIZE = 5;
+		buffer = calloc( BUFFER_SIZE, sizeof( *buffer ) );
+		if ( buffer == NULL ) {
+			 perror( "Not enough memory for calloc" );
+			 return NULL;
+		}
 		do {
-			fgets( buffer_saver + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
+			buffer_saver = fgets( buffer + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
 			if ( buffer_saver == NULL ) {  // third  variant
-				free( *buffer );
-				perror( "You have reached end of file." );
+				return buffer;
+			}
+			if ( ( strlen( buffer ) == 1 ) && ( buffer[0] == '\n' ) ) {  // if it's blank string
+				free( buffer );
 				return NULL;
 			}
-			*buffer = buffer_saver;
-			if ( ( strlen( *buffer ) == 1 ) && ( (*buffer)[0] == '\n' ) ) {
-				free( *buffer );
-				return NULL;
+			if ( buffer[ strlen( buffer ) - 1 ] == '\n' ) {
+					return buffer;
 			}
-			if ( (*buffer)[ strlen( *buffer ) - 1 ] == '\n' ) {
-					return *buffer;
-				}
 			cycle_counter++;
-			buffer_saver = realloc( buffer_saver, cycle_counter * BUFFER_SIZE * sizeof( *buffer_saver ) );
+			buffer_saver = buffer;
+			buffer_saver = realloc( buffer, cycle_counter * ( BUFFER_SIZE - 1 ) * sizeof( *buffer ) );
+			if ( buffer_saver == NULL ) {
+				perror( "Not enough memory for realloc: " );
+				free( buffer );
+				return NULL;
+			}
+
 		} while ( 1 );
 
 	}
