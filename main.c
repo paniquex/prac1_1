@@ -70,9 +70,8 @@ int main( void ) {
 						line_with_correct_group = readUntilEOL( cur_line, &line_with_correct_group );
 						if ( line_with_correct_group != NULL ) {
 							fputs(line_with_correct_group, foutput);
-
+							free( line_with_correct_group );
 						}
-						free( line_with_correct_group );
 				}
 				isCorrectGroup = 1;
 				do {  // read all symbols after GID to end of line or end of file
@@ -108,17 +107,14 @@ char *readUntilEOL( FILE *line, char **buffer ) {
 		perror( "Empty file!" );
 		exit( 0 );
 	} else {
-		char *buffer_saver;
-		const unsigned int BUFFER_SIZE = 2;
-		buffer_saver = calloc( BUFFER_SIZE + 1, sizeof( *buffer_saver ) );
+		char *buffer_saver1;
+		const unsigned int BUFFER_SIZE = 3;
+		*buffer = calloc( BUFFER_SIZE, sizeof( **buffer ) );
 		do {
-			fgets( buffer_saver + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
-			if ( buffer_saver == NULL ) {  // third  variant
-				free( *buffer );
-				perror( "You have reached end of file." );
-				return NULL;
+			buffer_saver1 = fgets( (*buffer) + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), BUFFER_SIZE, line );
+			if ( buffer_saver1 == NULL ) {  // third  variant
+				return *buffer;
 			}
-			*buffer = buffer_saver;
 			if ( ( strlen( *buffer ) == 1 ) && ( (*buffer)[0] == '\n' ) ) {
 				free( *buffer );
 				return NULL;
@@ -127,7 +123,13 @@ char *readUntilEOL( FILE *line, char **buffer ) {
 					return *buffer;
 				}
 			cycle_counter++;
-			buffer_saver = realloc( buffer_saver, cycle_counter * BUFFER_SIZE * sizeof( *buffer_saver ) );
+			buffer_saver1 = realloc( *buffer, cycle_counter * ( BUFFER_SIZE  ) * sizeof( **buffer ) );
+			if ( buffer_saver1 == NULL ) {
+				perror( "Not enough memory for realloc: " );
+				free( *buffer );
+				return NULL;
+			}
+			*buffer = buffer_saver1;
 		} while ( 1 );
 
 	}
