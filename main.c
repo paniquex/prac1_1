@@ -62,6 +62,9 @@ int main( int argc, char *argv[] ) {
 					if ( ( cur_element_passwd != number_of_correct_group[ i ]  ) && ( cur_element_passwd != ':' ) ) {
 						isCorrectGroup = 0;
 					}
+				 	if ( ( cur_element_passwd == ':' ) && ( i == 0 ) ) {
+				 		isCorrectGroup = 0;
+				 	}
 					i++;
 				} while ( cur_element_passwd != ':' );
 				if ( isCorrectGroup == 1 ) {
