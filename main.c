@@ -101,8 +101,8 @@ int main( int argc, char *argv[] ) {
 
 char *readUntilEOL( FILE *line ) {
 	int cycle_counter = 1;
-	char *buffer;
-	char *buffer_saver; // if after realloc we lose memory
+	char *buffer = NULL;
+	char *buffer_saver = NULL; // if after realloc we lose memory
 	if ( line == NULL ) {
 		perror( "Empty file!" );
 		return NULL;
@@ -127,8 +127,22 @@ char *readUntilEOL( FILE *line ) {
 			}
 			cycle_counter++;
 			buffer_saver = realloc( buffer, 1 + cycle_counter * ( BUFFER_SIZE - 1 ) * sizeof( *buffer ) );
+			// we checked, that it's not EOL and EOF earlier, so we have at least one more symbol in line, so we have at least one byte of memory
 			if ( buffer_saver == NULL ) {
-				perror( "Not enough memory for realloc: " );
+				int memory_size = 1;
+				buffer_saver = realloc( buffer, ( memory_size + 1 + ( BUFFER_SIZE - 1 ) * ( cycle_counter - 1 ) * sizeof( *buffer ) ) );
+				while ( buffer_saver != NULL ) {
+					buffer_saver = fgets( buffer + memory_size + ( cycle_counter - 1 ) * ( BUFFER_SIZE - 1 ), 1, line );
+					if ( buffer_saver == NULL ) {  // third  variant
+						return buffer;
+					}
+					if ( buffer[ strlen( buffer ) - 1 ] == '\n' ) {
+						return buffer;
+					}
+					memory_size++;
+					buffer_saver = realloc( buffer, ( memory_size + 1 + ( BUFFER_SIZE - 1 ) * ( cycle_counter - 1 ) * sizeof( *buffer ) ) );
+				}
+				perror( "Not enough memory for realloc." );
 				free( buffer );
 				return NULL;
 			}
