@@ -3,13 +3,15 @@
 #include <string.h>
 #include <ctype.h>
 
-char *readUntilEOL( FILE* line ); //returns buffer, if line was read correctly; else - NULL
+char *
+readUntilEOL(FILE* line); //returns buffer, if line was read correctly; else - NULL
 
-int isNumber( char *string ); // check if string == number, then 1; esle - 0;
+int
+isNumber(char *string); // check if string == number, then 1; esle - 0;
 
 
 
-int main( int argc, char *argv[] ) {
+int main(int argc, char *argv[]) {
 	FILE *passwd = fopen( "./passwd", "r" );
 	FILE *cur_line = fopen( "./passwd", "r" );
 
@@ -17,21 +19,21 @@ int main( int argc, char *argv[] ) {
 		perror( "File \"passwd\" does not exist" );
 	}
 
-	if ( !( isNumber( argv[1] ) ) ) {
-		printf( "Second parametr must be a number. Please, try again." );
+	if (!(isNumber( argv[1]))) {
+		fprintf( stderr, "Second parametr must be a number. Please, try again.\n" );
 	}
 
 
 	char *fileName;
-	fileName = calloc(  strlen( argv[2] ) + 3, sizeof( char ) );
-	if ( fileName == NULL ) {
-		perror( "Not enought memory to realloc: " );
-		exit( 0 );
+	fileName = calloc(strlen(argv[2]) + 3, sizeof(char));
+	if (fileName == NULL) {
+		perror("Not enought memory to realloc: ");
+		exit(0);
 	}
-	strcat( fileName, "./" );
-	strcat( fileName, argv[2] );
-	FILE *foutput = fopen( fileName , "w" );
-	free( fileName );
+	strcat(fileName, "./" );
+	strcat(fileName, argv[2]);
+	FILE *foutput = fopen(fileName , "w");
+	free(fileName);
 
 	char cur_element_passwd;
 	int isNotEOF1 = 1;
@@ -40,25 +42,28 @@ int main( int argc, char *argv[] ) {
 
 
 	char *line_with_correct_group;
-	char *number_of_correct_group = argv[ 1 ];
+	char *number_of_correct_group = argv[1];
 
 	unsigned int doubleDot_count = 0; // count of Double dot in single Line
 
-	fseek( cur_line, ftell( passwd ), SEEK_SET );
+	fseek(cur_line, ftell(passwd), SEEK_SET);
 
-	while ( isNotEOF1 == 1 ) {
-		while ( isNotEOL1 == 1 ) {
-			if ( fread( &cur_element_passwd, sizeof( cur_element_passwd ), 1, passwd ) == 0 ) {
+	while (isNotEOF1 == 1) {
+		while (isNotEOL1 == 1) {
+			if (fread(&cur_element_passwd, sizeof(cur_element_passwd), 1, passwd) == 0) {
 				isNotEOF1 = 0;
-				break;
 			}  //if it is end of file then break;
-			if ( cur_element_passwd == ':' ) {
+			if (cur_element_passwd == '\n') { // if it is end of line
+				isNotEOL1 = 0;
+				fseek(cur_line, ftell( passwd), SEEK_SET);
+			}
+			if (cur_element_passwd == ':') {
 				doubleDot_count++;
 			}
-			if ( doubleDot_count == 3 ) { // if we meet third ':' then check GID and write to foutput
+			if (doubleDot_count == 3) { // if we meet third ':' then check GID and write to foutput
 				int i = 0;
 				do {
-					fread( &cur_element_passwd, sizeof( cur_element_passwd ), 1, passwd );
+					fread(&cur_element_passwd, sizeof(cur_element_passwd), 1, passwd);
 					if ( ( cur_element_passwd != number_of_correct_group[ i ]  ) && ( cur_element_passwd != ':' ) ) {
 						isCorrectGroup = 0;
 					}
@@ -67,6 +72,9 @@ int main( int argc, char *argv[] ) {
 				 	}
 					i++;
 				} while ( cur_element_passwd != ':' );
+				if ( ( i - 1 ) != ( strlen( number_of_correct_group ) ) ) { //check if number of group in line == part of number of group from console
+					isCorrectGroup = 0;
+				}
 				if ( isCorrectGroup == 1 ) {
 						line_with_correct_group = readUntilEOL( cur_line );
 						if ( line_with_correct_group != NULL ) {
@@ -83,12 +91,13 @@ int main( int argc, char *argv[] ) {
 					}
 
 				} while ( ( isNotEOF1 == 1 ) && ( isNotEOL1 == 1 ) );
-				doubleDot_count = 0;
+				//doubleDot_count = 0;
 				if ( isNotEOF1 == 0 ) {
 					isNotEOL1 = 0;
 				}
 			}
 		}
+		doubleDot_count = 0;
 		isNotEOL1 = 1;
 	}
 
@@ -102,7 +111,9 @@ int main( int argc, char *argv[] ) {
 }
 
 
-char *readUntilEOL( FILE *line ) {
+char *
+readUntilEOL( FILE *line )
+{
 	int cycle_counter = 1;
 	char *buffer = NULL;
 	char *buffer_saver = NULL; // if after realloc we lose memory
@@ -156,7 +167,9 @@ char *readUntilEOL( FILE *line ) {
 	}
 }
 
-int isNumber( char *string ) {
+int
+isNumber( char *string )
+{
 	for( int i = 0; i < strlen( string ); i++ ) {
 		if ( !( isdigit( string[i] ) ) ) {
 			return 0;
