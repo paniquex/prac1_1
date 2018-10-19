@@ -10,17 +10,24 @@ int
 isNumber(char *string); // check if string == number, then 1; esle - 0;
 
 
-
 int main(int argc, char *argv[]) {
 	FILE *passwd = fopen( "./passwd", "r" );
 	FILE *cur_line = fopen( "./passwd", "r" );
 
 	if ( passwd == NULL ) {
 		perror( "File \"passwd\" does not exist" );
+		exit( 1 );
+	}
+
+	//If first two parametrs ( number of group  and filename ) is NULL
+	if ( argc < 3 ) {
+		fprintf( stderr, "One or more parameters are missed\n" );
+		return 1;
 	}
 
 	if (!(isNumber( argv[1]))) {
 		fprintf( stderr, "Second parametr must be a number. Please, try again.\n" );
+		exit( 1 );
 	}
 
 
@@ -32,7 +39,7 @@ int main(int argc, char *argv[]) {
 	}
 	strcat(fileName, "./" );
 	strcat(fileName, argv[2]);
-	FILE *foutput = fopen(fileName , "w");
+	FILE *foutput = fopen(fileName , "w+" );
 	free(fileName);
 
 	char cur_element_passwd;
@@ -170,6 +177,10 @@ readUntilEOL( FILE *line )
 int
 isNumber( char *string )
 {
+	if ( string == NULL ) {
+		fprintf( stderr, "Error in function **isNumber**. First parametr is NULL" );
+		return 3;
+	}
 	for( int i = 0; i < strlen( string ); i++ ) {
 		if ( !( isdigit( string[i] ) ) ) {
 			return 0;
