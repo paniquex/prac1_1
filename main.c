@@ -10,19 +10,20 @@ int
 isNumber(char *string); // checks if string == number, then 1; esle - 0;
 
 void
-startErrorsCheck(FILE *file, int arg_count, char *group_number); // checks if 1) passwd not found, 2) argc < 3, 3) first parameter is not number
+startErrorsCheck(FILE *file, int arg_count, char *group_number); // checks if 1) passwd not found, 2) number of parameters < 3, 3) first parameter is not number
 
 FILE *
-createFile(char *fileName); // returns file with name argv[2]
+createFile(char *fileName, FILE *input_file); // returns file with name argv[2]
 
+const char* path_to_input_file = "/etc/passwd";
 
 int main(int argc, char *argv[]) {
-	FILE *passwd = fopen("./passwd", "r");
-	FILE *cur_line = fopen("./passwd", "r");
+	FILE *passwd = fopen(path_to_input_file, "r");
 
-	startErrorsCheck(passwd, argc, argv[1]); 
+	startErrorsCheck(passwd, argc, argv[1]);
+	FILE *foutput = createFile(argv[2], passwd);
 
-	FILE *foutput = createFile(argv[2]); 
+	FILE *cur_line = fopen(path_to_input_file, "r");
 
 	char cur_element_passwd; // element, which was read from passwd
 	int isNotEOF = 1; 
@@ -214,17 +215,19 @@ startErrorsCheck(FILE *file, int arg_count, char *group_number)
 	//If first two parametrs (number of group  and filename) is NULL
 	if (arg_count <= MIN_AMOUNT_PARAMETERS) {
 		fprintf(stderr, "One or more parameters are missed\n");
+		fclose(file);
 		exit(1);
 	}
 
 	if (!(isNumber(group_number))) {
 		fprintf(stderr, "Second parametr must be a number. Please, try again.\n");
+		fclose(file);
 		exit(1);
 	}
 }
 
 FILE *
-createFile(char *fileName)
+createFile(char *fileName, FILE *input_file )
 {
 	const int CUR_PATH_STRING_SIZE = 2;
 	char *path_to_file;
@@ -237,6 +240,12 @@ createFile(char *fileName)
 	memcpy(path_to_file + CUR_PATH_STRING_SIZE , fileName, strlen(fileName));
 	path_to_file[strlen(fileName) + CUR_PATH_STRING_SIZE] = '\0';
 	FILE *foutput = fopen(path_to_file , "w+");
+	if ( foutput == NULL ) {
+		perror( "Input file was not open");
+		free( path_to_file );
+		fclose( input_file );
+		exit( 1 );
+	}
 	free(path_to_file);
 	return foutput;
 }
